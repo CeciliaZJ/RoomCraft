@@ -8,20 +8,21 @@
     <!-- Google Font -->
     <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="../static/styles.css">
 </head>
 <body>
 
 <!-- Header -->
 <header>
     <h1>RoomCraft</h1>
-    <button class="login-btn">Home</button> <!-- changed button text -->
+    <a href="index.html" class="login-btn">Home</a>
 </header>
+
 
 <!-- Main Section -->
 <main>
     <div class="login-form-container">
-        <form class="login-form">
+        <form class="login-form" action="/signup" method="POST">
             <h2>Create Your Account</h2>
             <input type="text" name="firstName" placeholder="First Name" required>
             <input type="text" name="lastName" placeholder="Last Name" required>
@@ -29,6 +30,9 @@
             <input type="password" name="password" placeholder="Password" required>
             <button type="submit">Sign Up</button>
         </form>
+        <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+        <img src="{{ url_for('static', filename='images/background.png') }}">
+
     </div>
 </main>
 

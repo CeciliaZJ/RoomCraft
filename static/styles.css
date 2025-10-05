@@ -122,26 +122,32 @@ main {
 
 /* ---------- Home Page Button ---------- */
 .main-content {
+    display: flex;          /* use flex layout */
+    flex-direction: column; /* stack children vertically */
+    align-items: center;    /* center horizontally */
+    justify-content: center; /* center vertically if needed */
+    height: calc(100vh - 80px); /* full height minus header */
     text-align: center;
-    color: white;
 }
+
 
 .main-text {
     font-size: 3rem;
     font-weight: bold;
-    margin-bottom: 30px;
-    text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
+    margin-bottom: 40px; /* space between text and button */
 }
 
+
 .craft-btn {
+    display: inline-block;  /* ensures it’s treated as block-level for spacing */
+    padding: 15px 30px;
+    border-radius: 8px;
     background-color: #557349;
     color: white;
     text-decoration: none;
-    padding: 15px 30px;
-    border-radius: 8px;
     font-size: 1.2rem;
-    transition: 0.3s;
     border: 2px solid white;
+    transition: 0.3s;
 }
 
 .craft-btn:hover {

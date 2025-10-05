@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Columbia Furniture Forum</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+        <style>
+            body { font-family: 'Inter', sans-serif; }
+            .forum-card {
+                    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+                }
+            /* Custom scrollbar for better aesthetics */
+            ::-webkit-scrollbar { width: 8px; }
+            ::-webkit-scrollbar-track { background: #f1f5f9; }
+            ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
+            ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+        </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <!-- Auth Modal -->
+    <div id="auth-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg p-8 m-4 max-w-sm w-full transform transition-all duration-300 ease-in-out">
+                <h2 class="text-2xl font-bold text-center text-blue-800">Columbia Student Forum</h2>
+                <p class="text-center text-gray-600 mt-2 mb-6">Enter a display name to join the conversation.</p>
+                <input id="display-name-input" type="text" placeholder="Your Name" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button id="join-forum-btn" class="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-700 transition duration-200 mt-4">Join Forum</button>
+                <p class="text-xs text-gray-500 mt-3 text-center">This is an open forum for students to share information.</p>
+            </div>
+        </div>
+
+    <!-- Main Content -->
+    <div id="main-content" class="hidden max-w-4xl mx-auto p-4 md:p-6">
+            <header class="mb-6">
+                <h1 class="text-3xl md:text-4xl font-bold text-blue-800">Furniture Forum</h1>
+                <p class="text-gray-600 mt-1">A place for Columbia students to share and find furniture.</p>
+                <div id="user-info" class="mt-2 text-sm text-gray-500"></div>
+            </header>
+
+            <!-- Controls: Search and Create Post -->
+            <div class="flex flex-col md:flex-row gap-4 mb-6">
+                <div class="relative flex-grow">
+                    <input id="search-box" type="text" placeholder="Search posts by title or content..." class="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd" /></svg>
+                </div>
+                <button id="create-post-btn" class="bg-green-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-green-700 transition duration-200 shrink-0">Create Post</button>
+            </div>
+
+            <!-- Create Post Form (hidden by default) -->
+            <div id="create-post-form" class="hidden bg-white p-6 rounded-lg forum-card mb-6">
+                <h3 class="text-xl font-semibold mb-4">Create a New Post</h3>
+                <div class="space-y-4">
+                    <input id="post-title" type="text" placeholder="Post Title" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <textarea id="post-content" placeholder="Describe the item, location, price, etc." rows="4" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                    <input id="post-link" type="url" placeholder="Optional: Link to a listing or photo" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="flex justify-end gap-4 mt-4">
+                    <button id="cancel-post-btn" class="bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-md hover:bg-gray-300">Cancel</button>
+                    <button id="submit-post-btn" class="bg-blue-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-700">Submit Post</button>
+                </div>
+            </div>
+
+            <!-- Posts Container -->
+            <div id="posts-container" class="space-y-6">
+                <!-- Posts will be dynamically inserted here -->
+            </div>
+
+            <div id="loading-indicator" class="text-center py-10">
+                <p class="text-gray-500">Loading posts...</p>
+            </div>
+            
+        </div>
+
+    <!-- Firebase and App Logic -->
+    <script type="module">
+    // Firebase Imports
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, collection, addDoc, serverTimestamp, onSnapshot, query, doc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // --- Firebase Configuration ---
+    // These global variables are expected to be provided by the environment.
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-forum-app';
+    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+    const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+    let app, auth, db, userId, displayName;
+    let postsCollection;
+
+    // --- UI Elements ---
+    const authModal = document.getElementById('auth-modal');
+    const mainContent = document.getElementById('main-content');
+    const displayNameInput = document.getElementById('display-name-input');
+    const joinForumBtn = document.getElementById('join-forum-btn');
+    const userInfo = document.getElementById('user-info');
+
+    const createPostBtn = document.getElementById('create-post-btn');
+    const createPostForm = document.getElementById('create-post-form');
+    const cancelPostBtn = document.getElementById('cancel-post-btn');
+    const submitPostBtn = document.getElementById('submit-post-btn');
+    const postsContainer = document.getElementById('posts-container');
+    const searchBox = document.getElementById('search-box');
+    const loadingIndicator = document.getElementById('loading-indicator');
+
+    // --- App Initialization ---
+    function initializeFirebase() {
+        try {
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+            postsCollection = collection(db, `/artifacts/${appId}/public/data/forum_posts`);
+            setupAuthListener();
+        } catch (e) {
+            console.error("Firebase initialization failed:", e);
+            mainContent.innerHTML = '<p class="text-red-500 text-center">Error: Could not connect to the forum database.</p>';
+        }
+    }
+
+    async function setupAuthListener() {
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                userId = user.uid;
+                showForumContent();
+                listenForPosts();
+            } else {
+                try {
+                    if (initialAuthToken) {
+                        await signInWithCustomToken(auth, initialAuthToken);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                } catch (error) {
+                    console.error("Authentication failed:", error);
+                }
+            }
+        });
+    }
+
+    function showForumContent() {
+        authModal.classList.add('hidden');
+        mainContent.classList.remove('hidden');
+        userInfo.innerHTML = `Logged in as: <span class="font-semibold">${displayName}</span> <br> UserID: <span class="font-mono text-xs">${userId}</span>`;
+    }
+
+    // --- Event Listeners ---
+    joinForumBtn.addEventListener('click', () => {
+        const name = displayNameInput.value.trim();
+        if (name) {
+            displayName = name;
+            initializeFirebase();
+        } else {
+            alert('Please enter a display name.');
+        }
+    });
+
+    createPostBtn.addEventListener('click', () => {
+        createPostForm.classList.toggle('hidden');
+        createPostBtn.textContent = createPostForm.classList.contains('hidden') ? 'Create Post' : 'Close Form';
+    });
+
+    cancelPostBtn.addEventListener('click', () => {
+        createPostForm.classList.add('hidden');
+        createPostBtn.textContent = 'Create Post';
+        clearPostForm();
+    });
+
+    submitPostBtn.addEventListener('click', async () => {
+        const title = document.getElementById('post-title').value.trim();
+        const content = document.getElementById('post-content').value.trim();
+        const link = document.getElementById('post-link').value.trim();
+
+        if (!title || !content) {
+            alert('Please provide a title and content for your post.');
+            return;
+        }
+
+        try {
+            await addDoc(postsCollection, {
+                authorId: userId,
+                authorName: displayName,
+                title,
+                content,
+                link: link || null,
+                timestamp: serverTimestamp(),
+                replies: []
+            });
+            clearPostForm();
+            createPostForm.classList.add('hidden');
+            createPostBtn.textContent = 'Create Post';
+        } catch (e) {
+            console.error("Error adding document: ", e);
+            alert('Failed to submit post. Please try again.');
+        }
+    });
+
+    searchBox.addEventListener('input', () => {
+        const searchTerm = searchBox.value.toLowerCase();
+        const posts = document.querySelectorAll('.post-card');
+        posts.forEach(post => {
+            // By checking the entire textContent of the post card, we can search
+            // the title, content, author, and all replies at once.
+            const postText = post.textContent.toLowerCase();
+            if (postText.includes(searchTerm)) {
+                post.style.display = 'block';
+            } else {
+                post.style.display = 'none';
+            }
+        });
+    });
+
+    // --- Firestore Logic ---
+    function listenForPosts() {
+        const q = query(postsCollection);
+        onSnapshot(q, (querySnapshot) => {
+            loadingIndicator.classList.add('hidden');
+            postsContainer.innerHTML = ''; // Clear existing posts
+
+            const posts = [];
+            querySnapshot.forEach((doc) => {
+                posts.push({ id: doc.id, ...doc.data() });
+            });
+
+            // Sort posts by timestamp, newest first
+            posts.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+
+            if(posts.length === 0){
+                postsContainer.innerHTML = '<p class="text-center text-gray-500">No posts yet. Be the first to create one!</p>';
+            } else {
+                posts.forEach(post => renderPost(post));
+            }
+        }, (error) => {
+            console.error("Error listening for posts:", error);
+            postsContainer.innerHTML = '<p class="text-red-500 text-center">Error: Could not load posts.</p>';
+        });
+    }
+
+    async function addReply(postId, content) {
+        if (!content.trim()) return;
+        const postRef = doc(db, `/artifacts/${appId}/public/data/forum_posts`, postId);
+        try {
+            await updateDoc(postRef, {
+                replies: arrayUnion({
+                    authorId: userId,
+                    authorName: displayName,
+                    content: content.trim(),
+                    timestamp: new Date()
+                })
+            });
+        } catch (e) {
+            console.error("Error adding reply:", e);
+            alert('Failed to add reply.');
+        }
+    }
+
+    // --- Rendering Logic ---
+    function renderPost(post) {
+        const postEl = document.createElement('div');
+        postEl.className = 'bg-white p-6 rounded-lg forum-card post-card';
+        postEl.dataset.id = post.id;
+
+        const time = post.timestamp ? new Date(post.timestamp.seconds * 1000).toLocaleString() : 'Just now';
+
+        const linkHTML = post.link ? `
+                <a href="${post.link}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline break-all">${post.link}</a>
+            ` : '';
+
+        postEl.innerHTML = `
+                <div class="flex justify-between items-start">
+                    <h2 class="text-xl font-bold text-gray-900">${escapeHTML(post.title)}</h2>
+                    <span class="text-xs text-gray-500 whitespace-nowrap ml-4">${time}</span>
+                </div>
+                <p class="text-sm text-gray-600 mb-4">by <span class="font-semibold">${escapeHTML(post.authorName)}</span></p>
+                <p class="text-gray-800 whitespace-pre-wrap post-content-text">${escapeHTML(post.content)}</p>
+                ${linkHTML}
+                
+                <!-- Replies Section -->
+                <div class="mt-6 border-t pt-4">
+                    <h4 class="text-md font-semibold mb-3">Replies (${post.replies.length})</h4>
+                    <div class="replies-list space-y-3 mb-4">
+                        ${post.replies.sort((a,b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0)).map(renderReply).join('')}
+                    </div>
+                    <div class="reply-form flex gap-2">
+                        <input type="text" placeholder="Write a reply..." class="w-full px-3 py-1.5 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
+                        <button class="bg-blue-500 text-white font-semibold text-sm py-1.5 px-4 rounded-md hover:bg-blue-600 shrink-0">Reply</button>
+                    </div>
+                </div>
+            `;
+
+        const replyForm = postEl.querySelector('.reply-form');
+        replyForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const input = replyForm.querySelector('input');
+            addReply(post.id, input.value);
+            input.value = '';
+        });
+        replyForm.querySelector('button').addEventListener('click', () => {
+            const input = replyForm.querySelector('input');
+            addReply(post.id, input.value);
+            input.value = '';
+        });
+
+        postsContainer.appendChild(postEl);
+    }
+
+    function renderReply(reply) {
+        const replyTime = reply.timestamp ? new Date(reply.timestamp.seconds * 1000).toLocaleString() : 'Just now';
+        return `
+                <div class="text-sm bg-gray-50 p-3 rounded-md">
+                    <p class="whitespace-pre-wrap">${escapeHTML(reply.content)}</p>
+                    <p class="text-xs text-gray-500 mt-1"><span class="font-semibold">${escapeHTML(reply.authorName)}</span> &middot; ${replyTime}</p>
+                </div>
+            `;
+    }
+
+    // --- Utility Functions ---
+    function clearPostForm() {
+        document.getElementById('post-title').value = '';
+        document.getElementById('post-content').value = '';
+        document.getElementById('post-link').value = '';
+    }
+
+    function escapeHTML(str) {
+        if (typeof str !== 'string') return '';
+        return str.replace(/[&<>"']/g, function(match) {
+            return {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            }[match];
+        });
+    }
+</script>
+</body>
+</html>
