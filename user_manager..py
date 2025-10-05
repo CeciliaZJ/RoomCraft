@@ -3,7 +3,7 @@ import hashlib
 import getpass # Although not used for API, we keep it for potential CLI use
 import os
 
-# This project was developed with the assistance of ChatGPT.
+##This project was developed with the assistance of ChatGPT on 10/04/2025.
 
 class UserManager:
     def __init__(self, filename='users.json'):
