@@ -119,3 +119,55 @@ main {
 .login-form button:hover {
     opacity: 0.9;
 }
+
+/* ---------- Home Page Button ---------- */
+.main-content {
+    text-align: center;
+    color: white;
+}
+
+.main-text {
+    font-size: 3rem;
+    font-weight: bold;
+    margin-bottom: 30px;
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
+}
+
+.craft-btn {
+    background-color: #557349;
+    color: white;
+    text-decoration: none;
+    padding: 15px 30px;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    transition: 0.3s;
+    border: 2px solid white;
+}
+
+.craft-btn:hover {
+    background-color: white;
+    color: #557349;
+    border-color: #557349;
+}
+
+/* ---------- Crafting Page ---------- */
+.craft-content {
+    text-align: center;
+    color: white;
+}
+
+.craft-title {
+    font-family: 'Baloo 2', cursive;
+    font-size: 3rem;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
+}
+
+.craft-description {
+    font-size: 1.3rem;
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.6;
+    text-shadow: 1px 1px 5px rgba(0,0,0,0.4);
+}
+
