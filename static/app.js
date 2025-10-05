@@ -1,3 +1,5 @@
+// This project was developed with the assistance of ChatGPT.
+
 console.log("✅ JS loaded");
 
 document.addEventListener('DOMContentLoaded', () => {

@@ -2,6 +2,8 @@ from flask import Flask, render_template, request, jsonify
 from manager import MarketplaceManager
 from user_manager import UserManager
 
+# This project was developed with the assistance of ChatGPT.
+
 app = Flask(__name__)
 manager = MarketplaceManager()
 user_manager = UserManager()

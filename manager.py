@@ -1,6 +1,8 @@
 import json
 import os
 
+# This project was developed with the assistance of ChatGPT.
+
 class MarketplaceManager:
     def __init__(self, filename="marketplace_data.json"):
         self.filename = filename
