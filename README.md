@@ -20,6 +20,10 @@ and search for other lisitngs to buy with cheaper price.
 4. GEMINI API KEY
 5. GEMINI API KEY workshop at DivHacks205
 
+## Challenges
+1. Had trouble making it work with Flask.
+2. Image Generating
+
 ## GEtting Started
 ### Dependencies
 1. Create your own GEMINI API KEY in Google AI Studio. Put it in the API KEY placeholder.
