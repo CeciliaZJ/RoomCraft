@@ -14,7 +14,7 @@ and search for other lisitngs to buy with cheaper price.
 3. User login and register function.
 
 ## Resources
-1. Python Programming Language, Google Colab
+1. Python Programming Language, Google Colab, CSS, HTML
 2. VS Code, IntelliJ
 3. ChatGPT, GEMINI AI as assistants
 4. GEMINI API KEY
