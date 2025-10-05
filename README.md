@@ -24,7 +24,7 @@ and search for other lisitngs to buy with cheaper price.
 1. Had trouble making it work with Flask.
 2. Image Generating
 
-## GEtting Started
+## Getting Started
 ### Dependencies
 1. Create your own GEMINI API KEY in Google AI Studio. Put it in the API KEY placeholder.
 2. If you are running with VS Code as your IDE, install google-generative ai Pillow Flask.
